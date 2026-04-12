@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>NEXUS | Key Generator</title>
+    <title>NEXUS | Premium Key Generator</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
@@ -455,7 +455,7 @@
     <div class="container">
         <div class="header">
             <div class="logo">✦ NEXUS</div>
-            <div class="subtitle">KEY GENERATOR • 5-STEP CHALLENGE</div>
+            <div class="subtitle">PREMIUM KEY GENERATOR • 5-STEP CHALLENGE</div>
         </div>
 
         <!-- User Info Card -->
@@ -497,9 +497,10 @@
     </div>
 
     <script>
-    
-    const BASE_API = "https://system-nexus-key.vercel.app";
-    
+        const BASE_API = "https://system-nexus-key.vercel.app";
+        const SAFELINKU_URL = "https://sfl.gl/rDcQ";
+        const EXPECTED_PASSWORD = "NEXUS2025-7738-8793"; // Password yang benar (sama dengan di Safelinku)
+
         // Particle Background
         function createParticles() {
             const container = document.getElementById('particles');
@@ -700,8 +701,9 @@
             }
         }
 
-        const SAFELINKU_URL = "https://sfl.gl/rDcQ";
-        const EXPECTED_PASSWORD = "NEXUS2025-7738-8793"; // Password yang benar (sama dengan di Safelinku)
+        // ============================================================
+        // STEP 3: GET PASSWORD FROM SAFELINKU
+        // ============================================================
         
         function showStep3() {
             updateStepsDisplay();
@@ -711,14 +713,14 @@
                     <div class="ad-icon"><i class="fas fa-lock"></i></div>
                     <div style="font-size: 18px; font-weight: 700; margin: 10px 0; color: #ffaa33;">Get Password from Safelinku</div>
                     <div style="font-size: 13px; margin-bottom: 20px; opacity: 0.8;">
-                        Klik tombol di bawah, selesaikan safelink, dan dapatkan PASSWORD untuk melanjutkan.
+                        Click the button below, complete the safelink, and get the password to continue..
                     </div>
-                    <a href="${SAFELINKU_URL}" target="_blank" class="btn btn-primary" style="display: inline-block; text-decoration: none; margin-bottom: 15px;" onclick="return true;">
+                    <a href="${SAFELINKU_URL}" target="_blank" class="btn btn-primary" style="display: inline-block; text-decoration: none; margin-bottom: 15px;">
                         <i class="fas fa-external-link-alt"></i> Go to Safelinku
                     </a>
                     <div class="password-hint">
-                        <i class="fas fa-info-circle"></i> Setelah menyelesaikan safelink, Anda akan mendapatkan password.<br>
-                        Masukkan password di bawah untuk melanjutkan ke step berikutnya.
+                        <i class="fas fa-info-circle"></i> After completing the safelink, you will get a password.<br>
+                        Enter your password below to proceed to the next step..
                     </div>
                 </div>
                 <div class="input-group">
