@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(ellipse at 20% 30%, #0a0a1a, #03030a);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Login Panel */
+        .login-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .login-card {
+            background: rgba(10, 10, 20, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 229, 255, 0.3);
+            border-radius: 48px;
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00e5ff, #00ff88);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 32px;
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: none;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding: 20px 28px;
+            background: rgba(10, 10, 20, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 60px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: rgba(15, 15, 25, 0.6);
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            border-radius: 28px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 42px;
+            font-weight: 800;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+            padding: 8px;
+            background: rgba(10, 10, 20, 0.4);
+            border-radius: 60px;
+        }
+
+        .tab-btn {
+            padding: 12px 28px;
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.6);
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #00e5ff, #00ff88);
+            color: #03030a;
+        }
+
+        /* Panels */
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* Forms */
+        .form-card {
+            background: rgba(10, 10, 20, 0.5);
+            border-radius: 28px;
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(20, 20, 35, 0.8);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            border-radius: 20px;
+            color: white;
+        }
+
+        button {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00e5ff, #0099cc);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff3355, #cc0033);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            color: #03030a;
+        }
+
+        /* Lists */
+        .list-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .list-item {
+            background: rgba(20, 20, 35, 0.6);
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .alert {
+            padding: 12px 20px;
+            border-radius: 20px;
+            margin-top: 16px;
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+
+        .alert-error {
+            background: rgba(255, 51, 85, 0.1);
+            border: 1px solid #ff3355;
+            color: #ff3355;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Panel -->
+        <div id="loginPanel" class="login-wrapper">
+            <div class="login-card">
+                <div class="logo">✦ NEXUS ADMIN</div>
+                <input type="text" id="adminUser" placeholder="Username" value="admin" style="width:100%; padding:14px; margin-bottom:12px; border-radius:30px;">
+                <input type="password" id="adminPass" placeholder="Password" style="width:100%; padding:14px; margin-bottom:20px; border-radius:30px;">
+                <button onclick="adminLogin()" class="btn-primary" style="width:100%;">Login</button>
+                <div id="loginMsg"></div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="dashboard">
+            <div class="header">
+                <h1>✦ NEXUS ADMIN PANEL</h1>
+                <button onclick="adminLogout()" class="btn-danger">Logout</button>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card"><div class="stat-number" id="totalKeys">0</div><div class="stat-label">Total Keys</div></div>
+                <div class="stat-card"><div class="stat-number" id="activeKeys">0</div><div class="stat-label">Active Keys</div></div>
+                <div class="stat-card"><div class="stat-number" id="totalUsers">0</div><div class="stat-label">Total Users</div></div>
+                <div class="stat-card"><div class="stat-number" id="bannedUsers">0</div><div class="stat-label">Banned Users</div></div>
+                <div class="stat-card"><div class="stat-number" id="challengesCompleted">0</div><div class="stat-label">Challenges Done</div></div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('keys')"><i class="fas fa-key"></i> Keys</button>
+                <button class="tab-btn" onclick="switchTab('users')"><i class="fas fa-users"></i> Users</button>
+                <button class="tab-btn" onclick="switchTab('add')"><i class="fas fa-plus"></i> Add Key</button>
+            </div>
+
+            <!-- Keys Tab -->
+            <div id="tabKeys" class="tab-panel active">
+                <div class="form-card">
+                    <h3>All Keys</h3>
+                    <div class="list-container" id="keysList">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="tabUsers" class="tab-panel">
+                <div class="form-card">
+                    <h3>All Users</h3>
+                    <div class="list-container" id="usersList">Loading...</div>
+                </div>
+            </div>
+
+            <!-- Add Key Tab -->
+            <div id="tabAdd" class="tab-panel">
+                <div class="form-card">
+                    <h3>Add Manual Key</h3>
+                    <div class="form-group">
+                        <label>User ID</label>
+                        <input type="text" id="manualUserId" placeholder="User ID">
+                    </div>
+                    <div class="form-group">
+                        <label>Duration (Hours)</label>
+                        <select id="manualDuration">
+                            <option value="3">3 Hours</option>
+                            <option value="6">6 Hours</option>
+                            <option value="12">12 Hours</option>
+                            <option value="24">24 Hours</option>
+                            <option value="72">72 Hours</option>
+                        </select>
+                    </div>
+                    <button onclick="adminAddKey()" class="btn-success">Add Key</button>
+                    <div id="addKeyMsg"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ADMIN_TOKEN = null;
+        const API_BASE = "https://system-nexus-key.vercel.app";
+
+        async function adminLogin() {
+            const username = document.getElementById('adminUser').value;
+            const password = document.getElementById('adminPass').value;
+            
+            const res = await fetch(`${API_BASE}/api/admin/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                ADMIN_TOKEN = data.token;
+                document.getElementById('loginPanel').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                loadStats();
+                loadKeys();
+                loadUsers();
+            } else {
+                document.getElementById('loginMsg').innerHTML = `<div class="alert alert-error">Login failed</div>`;
+            }
+        }
+
+        async function loadStats() {
+            const res = await fetch(`${API_BASE}/api/admin/stats`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: ADMIN_TOKEN })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                document.getElementById('totalKeys').innerText = data.stats.totalKeys;
+                document.getElementById('activeKeys').innerText = data.stats.activeKeys;
+                document.getElementById('totalUsers').innerText = data.stats.totalUsers;
+                document.getElementById('bannedUsers').innerText = data.stats.bannedUsers;
+                document.getElementById('challengesCompleted').innerText = data.stats.challengesCompleted;
+            }
+        }
+
+        async function loadKeys() {
+            const res = await fetch(`${API_BASE}/api/admin/keys`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: ADMIN_TOKEN })
+            });
+            const data = await res.json();
+            
+            if (data.success && data.keys) {
+                const container = document.getElementById('keysList');
+                if (data.keys.length === 0) {
+                    container.innerHTML = '<div class="alert">No keys found</div>';
+                } else {
+                    container.innerHTML = data.keys.map(k => `
+                        <div class="list-item">
+                            <div><strong>🔑 ${k.key_text}</strong></div>
+                            <div>User: ${k.user_id}</div>
+                            <div>Duration: ${k.duration_hours}h | Expires: ${new Date(k.expiry_ms).toLocaleString()}</div>
+                            <div>Status: ${k.status}</div>
+                            <button onclick="adminDeleteKey('${k.key_text}')" class="btn-danger" style="margin-top: 8px;">Delete</button>
+                        </div>
+                    `).join('');
+                }
+            }
+        }
+
+        async function loadUsers() {
+            const res = await fetch(`${API_BASE}/api/admin/users`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: ADMIN_TOKEN })
+            });
+            const data = await res.json();
+            
+            if (data.success && data.users) {
+                const container = document.getElementById('usersList');
+                if (data.users.length === 0) {
+                    container.innerHTML = '<div class="alert">No users found</div>';
+                } else {
+                    container.innerHTML = data.users.map(u => `
+                        <div class="list-item">
+                            <div><strong>👤 ${u.user_id}</strong></div>
+                            <div>Email: ${u.email || 'N/A'} | Phone: ${u.phone || 'N/A'}</div>
+                            <div>Keys Generated: ${u.keys_generated}</div>
+                            <div>Status: ${u.banned === 1 ? 'BANNED' : 'ACTIVE'}</div>
+                            ${u.banned === 1 ? 
+                                `<button onclick="adminUnbanUser('${u.user_id}')" class="btn-success" style="margin-top: 8px;">Unban</button>` :
+                                `<button onclick="adminBanUser('${u.user_id}')" class="btn-danger" style="margin-top: 8px;">Ban</button>`
+                            }
+                        </div>
+                    `).join('');
+                }
+            }
+        }
+
+        async function adminAddKey() {
+            const userId = document.getElementById('manualUserId').value;
+            const durationHours = parseInt(document.getElementById('manualDuration').value);
+            
+            if (!userId) {
+                document.getElementById('addKeyMsg').innerHTML = '<div class="alert alert-error">User ID required</div>';
+                return;
+            }
+            
+            const res = await fetch(`${API_BASE}/api/admin/add-key`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: ADMIN_TOKEN, userId, durationHours })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                document.getElementById('addKeyMsg').innerHTML = `<div class="alert alert-success">✅ Key created: ${data.key}</div>`;
+                loadStats();
+                loadKeys();
+            } else {
+                document.getElementById('addKeyMsg').innerHTML = `<div class="alert alert-error">Error: ${data.error}</div>`;
+            }
+        }
+
+        async function adminDeleteKey(key) {
+            if (!confirm(`Delete key ${key}?`)) return;
+            
+            await fetch(`${API_BASE}/api/admin/delete-key`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: ADMIN_TOKEN, key })
+            });
+            loadStats();
+            loadKeys();
+        }
+
+        async function adminBanUser(userId) {
+            if (!confirm(`Ban user ${userId}?`)) return;
+            
+            await fetch(`${API_BASE}/api/admin/ban-user`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: ADMIN_TOKEN, userId })
+            });
+            loadStats();
+            loadUsers();
+        }
+
+        async function adminUnbanUser(userId) {
+            await fetch(`${API_BASE}/api/admin/unban-user`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: ADMIN_TOKEN, userId })
+            });
+            loadStats();
+            loadUsers();
+        }
+
+        async function adminLogout() {
+            await fetch(`${API_BASE}/api/admin/logout`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: ADMIN_TOKEN })
+            });
+            ADMIN_TOKEN = null;
+            document.getElementById('loginPanel').style.display = 'flex';
+            document.getElementById('dashboard').style.display = 'none';
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            if (tab === 'keys') {
+                document.getElementById('tabKeys').classList.add('active');
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                loadKeys();
+            } else if (tab === 'users') {
+                document.getElementById('tabUsers').classList.add('active');
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                loadUsers();
+            } else if (tab === 'add') {
+                document.getElementById('tabAdd').classList.add('active');
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>
