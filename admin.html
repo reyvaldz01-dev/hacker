@@ -643,7 +643,7 @@
             const username = document.getElementById('adminUser').value;
             const password = document.getElementById('adminPass').value;
             
-            const res = await fetch('${BASE_API}/api/admin/login', {
+            const res = await fetch(`${BASE_API}/api/admin/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -668,7 +668,7 @@
 
         // Load Statistics
         async function loadStats() {
-            const res = await fetch('${BASE_API}/api/admin/stats', {
+            const res = await fetch(`${BASE_API}/api/admin/stats`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token })
@@ -730,7 +730,7 @@
 
         // Load Keys
         async function loadKeys() {
-            const res = await fetch('${BASE_API}/api/admin/keys', {
+            const res = await fetch(`${BASE_API}/api/admin/keys`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token })
@@ -762,7 +762,7 @@
 
         // Load Users
         async function loadUsers() {
-            const res = await fetch('${BASE_API}/api/admin/users', {
+            const res = await fetch(`${BASE_API}/api/admin/users`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token })
@@ -799,7 +799,7 @@
 
         // Load Banned IPs
         async function loadBannedIps() {
-            const res = await fetch('${BASE_API}/api/admin/banned-ips', {
+            const res = await fetch(`${BASE_API}/api/admin/banned-ips`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token })
@@ -828,7 +828,7 @@
 
         // Load Settings
         async function loadSettings() {
-            const res = await fetch('${BASE_API}/api/admin/get-settings', {
+            const res = await fetch(`${BASE_API}/api/admin/get-settings`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token })
@@ -851,7 +851,7 @@
                 default_duration_hours: document.getElementById('settingDefaultDuration').value
             };
             
-            const res = await fetch('${BASE_API}/api/admin/settings', {
+            const res = await fetch(`${BASE_API}/api/admin/settings`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token, ...settings })
@@ -875,7 +875,7 @@
             
             if (!userId) { showToast('User ID required', 'error'); return; }
             
-            const res = await fetch('${BASE_API}/api/admin/add-key', {
+            const res = await fetch(`${BASE_API}/api/admin/add-key`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token, userId, days, hours, minutes, keyText, lockToIp })
@@ -898,7 +898,7 @@
             if (!userId) { showToast('User ID required', 'error'); return; }
             if (count > 100) { showToast('Max 100 keys at once', 'error'); return; }
             
-            const res = await fetch('${BASE_API}/api/admin/add-bulk-keys', {
+            const res = await fetch(`${BASE_API}/api/admin/add-bulk-keys`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token, userId, count, days, hours, minutes })
@@ -912,19 +912,19 @@
             } else { showToast(data.error, 'error'); }
         }
 
-        async function deleteKey(key) { if(confirm(`Delete ${key}?`)){ await fetch('${BASE_API}/api/admin/delete-key', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token, key}) }); loadKeys(); loadStats(); showToast('Key deleted', 'success'); } }
-        async function deleteExpired() { if(confirm('Delete all expired keys?')){ await fetch('${BASE_API}/api/admin/delete-expired-keys', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token}) }); loadKeys(); loadStats(); showToast('Expired keys deleted', 'success'); } }
-        async function deleteAll() { if(confirm('⚠️ DELETE ALL KEYS? This cannot be undone!')){ await fetch('${BASE_API}/api/admin/delete-all-keys', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token}) }); loadKeys(); loadStats(); showToast('All keys deleted', 'success'); } }
+        async function deleteKey(key) { if(confirm(`Delete ${key}?`)){ await fetch(`${BASE_API}/api/admin/delete-key`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token, key}) }); loadKeys(); loadStats(); showToast('Key deleted', 'success'); } }
+        async function deleteExpired() { if(confirm('Delete all expired keys?')){ await fetch(`${BASE_API}/api/admin/delete-expired-keys`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token}) }); loadKeys(); loadStats(); showToast('Expired keys deleted', 'success'); } }
+        async function deleteAll() { if(confirm('⚠️ DELETE ALL KEYS? This cannot be undone!')){ await fetch(`${BASE_API}/api/admin/delete-all-keys`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token}) }); loadKeys(); loadStats(); showToast('All keys deleted', 'success'); } }
         
-        async function banUser(userId) { if(confirm(`Ban user ${userId}?`)){ await fetch('${BASE_API}/api/admin/ban-user', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token, userId}) }); loadUsers(); loadStats(); showToast(`User ${userId} banned`, 'success'); } }
-        async function unbanUser(userId) { await fetch('${BASE_API}/api/admin/unban-user', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token, userId}) }); loadUsers(); loadStats(); showToast(`User ${userId} unbanned`, 'success'); }
+        async function banUser(userId) { if(confirm(`Ban user ${userId}?`)){ await fetch(`${BASE_API}/api/admin/ban-user`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token, userId}) }); loadUsers(); loadStats(); showToast(`User ${userId} banned`, 'success'); } }
+        async function unbanUser(userId) { await fetch(`${BASE_API}/api/admin/unban-user`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token, userId}) }); loadUsers(); loadStats(); showToast(`User ${userId} unbanned`, 'success'); }
         
-        async function banIp() { const ip = document.getElementById('banIp').value; const reason = document.getElementById('banReason').value; if(!ip){ showToast('IP required', 'error'); return; } const res = await fetch('${BASE_API}/api/admin/ban-ip', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token, ip, reason}) }); const data = await res.json(); if(data.success){ showToast(`IP ${ip} banned`, 'success'); loadBannedIps(); } else { showToast(data.error, 'error'); } }
-        async function unbanIp(ip) { await fetch('${BASE_API}/api/admin/unban-ip', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token, ip}) }); loadBannedIps(); showToast(`IP ${ip} unbanned`, 'success'); }
+        async function banIp() { const ip = document.getElementById('banIp').value; const reason = document.getElementById('banReason').value; if(!ip){ showToast('IP required', 'error'); return; } const res = await fetch(`${BASE_API}/api/admin/ban-ip`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token, ip, reason}) }); const data = await res.json(); if(data.success){ showToast(`IP ${ip} banned`, 'success'); loadBannedIps(); } else { showToast(data.error, 'error'); } }
+        async function unbanIp(ip) { await fetch(`${BASE_API}/api/admin/unban-ip`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token, ip}) }); loadBannedIps(); showToast(`IP ${ip} unbanned`, 'success'); }
         
         function exportData() { alert('Export feature: Data can be exported from Supabase dashboard'); }
         
-        async function adminLogout() { await fetch('${BASE_API}/api/admin/logout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token}) }); token = null; document.getElementById('loginPanel').style.display = 'flex'; document.getElementById('dashboard').style.display = 'none'; showToast('Logged out', 'info'); }
+        async function adminLogout() { await fetch(`${BASE_API}/api/admin/logout`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token}) }); token = null; document.getElementById('loginPanel').style.display = 'flex'; document.getElementById('dashboard').style.display = 'none'; showToast('Logged out', 'info'); }
         
         function switchTab(tab) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
