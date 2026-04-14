@@ -1,4 +1,4 @@
-u<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -63,7 +63,6 @@ u<!DOCTYPE html>
         .my-key-card { background: linear-gradient(135deg, rgba(0, 255, 136, 0.05), rgba(0, 229, 255, 0.05)); border-color: rgba(0, 255, 136, 0.3); }
         .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #00e5ff; animation: spin 0.6s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
         .password-hint { background: rgba(0, 229, 255, 0.1); border: 1px dashed #00e5ff; border-radius: 16px; padding: 12px; margin: 15px 0; font-size: 12px; text-align: center; color: #00e5ff; }
         @media (max-width: 600px) { .container { padding: 20px; } .glass-card { padding: 20px; } .step { padding: 10px 4px; } .step-number { font-size: 18px; } .step-label { font-size: 8px; } .duration-hours { font-size: 20px; } .key-value { font-size: 14px; } }
     </style>
@@ -107,474 +106,516 @@ u<!DOCTYPE html>
             <div id="myKeyContent"><div style="text-align: center; padding: 20px;"><div class="spinner"></div> Loading...</div></div>
         </div>
     </div>
-<script>
-      const BASE_API = 'https://system-nexus-key.vercel.app';
+
+    <script>
+        const BASE_API = 'https://system-nexus-key.vercel.app';
         const SAFELINKU_URL = "https://sfl.gl/rDcQ";
         const EXPECTED_PASSWORD = "NEXUS2025-7738-8793";
 
-    // Particle Background
-    function createParticles() {
-        const container = document.getElementById('particles');
-        if (!container) return;
-        for (let i = 0; i < 50; i++) {
-            const particle = document.createElement('div');
-            particle.classList.add('particle');
-            const size = Math.random() * 4 + 2;
-            particle.style.width = size + 'px';
-            particle.style.height = size + 'px';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDuration = Math.random() * 10 + 5 + 's';
-            particle.style.animationDelay = Math.random() * 5 + 's';
-            container.appendChild(particle);
-        }
-    }
-    createParticles();
-
-    let currentUserId = null;
-    let currentStep = 1;
-    let selectedDuration = 3;
-    let timerInterval = null;
-    let referralCheckInterval = null;
-
-    // Load my key on page load
-    async function loadMyKey() {
-        const userId = localStorage.getItem('nexus_user');
-        if (!userId) {
-            document.getElementById('myKeyContent').innerHTML = '<div class="alert alert-info"><i class="fas fa-info-circle"></i> Complete the challenge to get your free key!</div>';
-            return;
-        }
-        try {
-            const res = await fetch(`${BASE_API}/api/my-key/${userId}`);
-            const data = await res.json();
-            if (data.hasKey) {
-                document.getElementById('myKeyContent').innerHTML = `
-                    <div class="key-result">
-                        <div style="margin-bottom: 12px; opacity: 0.7;">🎉 Your Active Key</div>
-                        <div class="key-value"><i class="fas fa-key"></i> ${data.key}</div>
-                        <div style="margin-top: 16px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-                            <span class="alert-success" style="padding: 8px 16px;"><i class="fas fa-hourglass-half"></i> ${data.remaining}</span>
-                            <span class="alert-info" style="padding: 8px 16px;"><i class="fas fa-clock"></i> ${data.duration} Hours</span>
-                        </div>
-                        <button class="btn btn-success" style="margin-top: 16px; width: auto;" onclick="copyKey('${data.key}')"><i class="fas fa-copy"></i> Copy Key</button>
-                    </div>
-                `;
-            } else {
-                document.getElementById('myKeyContent').innerHTML = '<div class="alert alert-info"><i class="fas fa-gift"></i> No active key. Start the challenge to get one!</div>';
+        function createParticles() {
+            const container = document.getElementById('particles');
+            if (!container) return;
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                const size = Math.random() * 4 + 2;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = Math.random() * 10 + 5 + 's';
+                particle.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(particle);
             }
-        } catch(e) { console.error(e); }
-    }
-
-    function copyKey(key) {
-        navigator.clipboard.writeText(key);
-        showToast('Key copied to clipboard!', 'success');
-    }
-
-    function showToast(message, type) {
-        const toast = document.createElement('div');
-        toast.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: ${type === 'success' ? 'rgba(0,255,136,0.9)' : 'rgba(255,51,85,0.9)'};
-            color: ${type === 'success' ? '#03030a' : 'white'};
-            padding: 12px 24px;
-            border-radius: 40px;
-            font-size: 14px;
-            font-weight: 600;
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-        `;
-        toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    }
-
-    async function startChallenge() {
-        const userId = document.getElementById('userId').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        
-        if (!userId || !email || !phone) {
-            showToast('Please fill all fields', 'error');
-            return;
         }
-        if (!email.includes('@')) {
-            showToast('Invalid email address', 'error');
-            return;
-        }
-        
-        currentUserId = userId;
-        localStorage.setItem('nexus_user', userId);
-        
-        showToast('Starting challenge...', 'info');
-        
-        try {
-            const res = await fetch(`${BASE_API}/api/challenge/start`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, email, phone })
-            });
-            const data = await res.json();
-            
-            if (data.success) {
-                document.getElementById('userCard').style.display = 'none';
-                document.getElementById('challengeCard').style.display = 'block';
-                currentStep = 1;
-                showStep1();
-                showToast('Challenge started! Complete all 5 steps.', 'success');
-            } else {
-                showToast(data.error, 'error');
+        createParticles();
+
+        let currentUserId = null;
+        let currentStep = 1;
+        let selectedDuration = 3;
+        let timerInterval = null;
+        let referralCheckInterval = null;
+
+        async function loadMyKey() {
+            const userId = localStorage.getItem('nexus_user');
+            if (!userId) {
+                document.getElementById('myKeyContent').innerHTML = '<div class="alert alert-info"><i class="fas fa-info-circle"></i> Complete the challenge to get your free key!</div>';
+                return;
             }
-        } catch (err) {
-            showToast('Network error: ' + err.message, 'error');
-        }
-    }
-
-    function updateStepsDisplay() {
-        const stepsHtml = [1,2,3,4,5].map(step => `
-            <div class="step ${step < currentStep ? 'completed' : (step === currentStep ? 'active' : '')}">
-                <div class="step-number">${step}</div>
-                <div class="step-label">${step === 1 ? 'Email' : step === 2 ? 'Subscribe' : step === 3 ? 'Password' : step === 4 ? 'Share' : 'Claim'}</div>
-            </div>
-        `).join('');
-        document.getElementById('stepsDisplay').innerHTML = stepsHtml;
-    }
-
-    async function sendCode() {
-        const email = document.getElementById('email').value;
-        const res = await fetch(`${BASE_API}/api/challenge/send-code`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: currentUserId, email })
-        });
-        const data = await res.json();
-        if (data.code) {
-            document.getElementById('verifyCode').value = data.code;
-            showToast('Verification code sent!', 'success');
-        }
-    }
-
-    async function showStep1() {
-        updateStepsDisplay();
-        document.getElementById('stepContent').innerHTML = `
-            <div class="input-group">
-                <label><i class="fas fa-envelope"></i> Verification Code</label>
-                <input type="text" id="verifyCode" placeholder="Enter 6-digit code" maxlength="6">
-            </div>
-            <div style="display: flex; gap: 12px;">
-                <button class="btn btn-outline" onclick="sendCode()"><i class="fas fa-paper-plane"></i> Send Code</button>
-                <button class="btn btn-success" onclick="verifyStep1()"><i class="fas fa-check"></i> Verify</button>
-            </div>
-        `;
-        await sendCode();
-    }
-
-    async function verifyStep1() {
-        const code = document.getElementById('verifyCode').value;
-        const res = await fetch(`${BASE_API}/api/challenge/step1`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: currentUserId, code })
-        });
-        const data = await res.json();
-        if (data.success) {
-            currentStep = 2;
-            showStep2();
-            showToast('Email verified!', 'success');
-        } else {
-            showToast(data.error, 'error');
-        }
-    }
-
-    function showStep2() {
-        updateStepsDisplay();
-        document.getElementById('stepContent').innerHTML = `
-            <div class="input-group">
-                <label><i class="fab fa-telegram"></i> Telegram Username</label>
-                <input type="text" id="telegramUser" placeholder="@username">
-            </div>
-            <button class="btn btn-success" onclick="verifyStep2()"><i class="fas fa-check"></i> Verify Subscription</button>
-        `;
-    }
-
-    async function verifyStep2() {
-        const telegramUsername = document.getElementById('telegramUser').value;
-        const res = await fetch(`${BASE_API}/api/challenge/step2`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: currentUserId, telegramUsername })
-        });
-        const data = await res.json();
-        if (data.success) {
-            currentStep = 3;
-            showStep3();
-            showToast('Subscription verified!', 'success');
-        } else {
-            showToast(data.error, 'error');
-        }
-    }
-
-    // ============================================================
-    // STEP 3: GET PASSWORD FROM SAFELINKU
-    // ============================================================
-    
-    function showStep3() {
-        updateStepsDisplay();
-        
-        document.getElementById('stepContent').innerHTML = `
-            <div class="ad-timer" style="background: linear-gradient(135deg, rgba(255,100,0,0.2), rgba(255,50,0,0.1));">
-                <div class="ad-icon"><i class="fas fa-lock"></i></div>
-                <div style="font-size: 18px; font-weight: 700; margin: 10px 0; color: #ffaa33;">Get Password from Safelinku</div>
-                <div style="font-size: 13px; margin-bottom: 20px; opacity: 0.8;">
-                    Klik tombol di bawah, selesaikan safelink, dan dapatkan PASSWORD untuk melanjutkan.
-                </div>
-                <a href="${SAFELINKU_URL}" target="_blank" class="btn btn-primary" style="display: inline-block; text-decoration: none; margin-bottom: 15px;">
-                    <i class="fas fa-external-link-alt"></i> Go to Safelinku
-                </a>
-                <div class="password-hint">
-                    <i class="fas fa-info-circle"></i> Setelah menyelesaikan safelink, Anda akan mendapatkan password.<br>
-                    Masukkan password di bawah untuk melanjutkan ke step berikutnya.
-                </div>
-            </div>
-            <div class="input-group">
-                <label><i class="fas fa-key"></i> Enter Password from Safelinku</label>
-                <input type="text" id="safelinkPassword" placeholder="Enter password...">
-            </div>
-            <button class="btn btn-success" onclick="verifyStep3()" style="width:100%;">
-                <i class="fas fa-check-circle"></i> Verify Password
-            </button>
-        `;
-    }
-
-    async function verifyStep3() {
-        const enteredPassword = document.getElementById('safelinkPassword').value.trim();
-        
-        if (!enteredPassword) {
-            showToast('Please enter the password from Safelinku!', 'error');
-            return;
-        }
-        
-        showToast('Verifying password...', 'info');
-        
-        if (enteredPassword === EXPECTED_PASSWORD) {
-            const res = await fetch(`${BASE_API}/api/challenge/step3`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: currentUserId, captchaAnswer: 19 })
-            });
-            const data = await res.json();
-            
-            if (data.success) {
-                currentStep = 4;
-                showStep4();
-                showToast('Password verified! Proceed to step 4.', 'success');
-            } else {
-                showToast(data.error, 'error');
-            }
-        } else {
-            showToast('Wrong password! Please check the Safelinku again.', 'error');
-        }
-    }
-
-    // ============================================================
-    // STEP 4: REFERRAL SYSTEM (Verifikasi Otomatis)
-    // ============================================================
-
-    function showStep4() {
-        updateStepsDisplay();
-        
-        const shareLink = `${BASE_API}/ref/${currentUserId}`;
-        
-        document.getElementById('stepContent').innerHTML = `
-            <div class="ad-timer">
-                <div class="ad-icon"><i class="fas fa-share-alt"></i></div>
-                <div style="font-size: 18px; font-weight: 700; margin-bottom: 10px;">Share Link ke 3 Teman!</div>
-                <div style="font-size: 13px; margin-bottom: 20px; opacity: 0.8;">
-                    Setiap teman yang klik link akan terhitung otomatis.<br>
-                    Dibutuhkan <strong>3 klik dari IP berbeda</strong> untuk melanjutkan.
-                </div>
-                <div class="key-value" style="font-size: 14px; word-break: break-all; margin-bottom: 15px;">
-                    ${shareLink}
-                </div>
-                <button class="btn btn-outline" onclick="copyReferralLink('${shareLink}')" style="margin-bottom: 15px;">
-                    <i class="fas fa-copy"></i> Copy Link
-                </button>
-                <div id="referralStatus" style="margin-top: 15px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 16px;">
-                    <div><i class="fas fa-spinner fa-spin"></i> Memeriksa status...</div>
-                </div>
-            </div>
-            <button id="checkReferralBtn" class="btn btn-success" onclick="checkReferralStatus()" style="width:100%; margin-top: 16px;">
-                <i class="fas fa-sync-alt"></i> Cek Status Referral
-            </button>
-        `;
-        
-        if (referralCheckInterval) clearInterval(referralCheckInterval);
-        referralCheckInterval = setInterval(checkReferralStatus, 5000);
-        setTimeout(checkReferralStatus, 500);
-    }
-
-    function copyReferralLink(link) {
-        navigator.clipboard.writeText(link);
-        showToast('Link copied! Share with your friends.', 'success');
-    }
-
-    async function checkReferralStatus() {
-        try {
-            const res = await fetch(`${BASE_API}/api/referral-status/${currentUserId}`);
-            const data = await res.json();
-            
-            if (data.success) {
-                const statusDiv = document.getElementById('referralStatus');
-                const remaining = data.remaining;
-                const current = data.referralCount;
-                
-                if (data.isCompleted) {
-                    statusDiv.innerHTML = `
-                        <div style="color: #00ff88;">
-                            <i class="fas fa-check-circle"></i> ✅ Referral completed! (${current}/3 clicks)
-                        </div>
-                        <div style="margin-top: 10px;">
-                            <button class="btn btn-success" onclick="proceedToStep5()" style="width:100%;">
-                                <i class="fas fa-arrow-right"></i> Lanjut ke Step 5
-                            </button>
+            try {
+                const res = await fetch(`${BASE_API}/api/my-key/${userId}`);
+                const data = await res.json();
+                if (data.hasKey) {
+                    document.getElementById('myKeyContent').innerHTML = `
+                        <div class="key-result">
+                            <div style="margin-bottom: 12px; opacity: 0.7;">🎉 Your Active Key</div>
+                            <div class="key-value"><i class="fas fa-key"></i> ${data.key}</div>
+                            <div style="margin-top: 16px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                                <span class="alert-success" style="padding: 8px 16px;"><i class="fas fa-hourglass-half"></i> ${data.remaining}</span>
+                                <span class="alert-info" style="padding: 8px 16px;"><i class="fas fa-clock"></i> ${data.duration} Hours</span>
+                            </div>
+                            <button class="btn btn-success" style="margin-top: 16px; width: auto;" onclick="copyKey('${data.key}')"><i class="fas fa-copy"></i> Copy Key</button>
                         </div>
                     `;
-                    if (referralCheckInterval) clearInterval(referralCheckInterval);
                 } else {
-                    statusDiv.innerHTML = `
-                        <div><i class="fas fa-users"></i> Progress: ${current}/3 unique clicks</div>
-                        <div class="progress-bar" style="margin-top: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; height: 8px;">
-                            <div style="width: ${(current/3)*100}%; background: linear-gradient(90deg, #00e5ff, #00ff88); border-radius: 10px; height: 8px;"></div>
-                        </div>
-                        <div style="margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.5);">
-                            ${remaining > 0 ? `Butuh ${remaining} klik lagi dari IP berbeda` : 'Silakan klik "Cek Status"'}
-                        </div>
-                    `;
+                    document.getElementById('myKeyContent').innerHTML = '<div class="alert alert-info"><i class="fas fa-gift"></i> No active key. Start the challenge to get one!</div>';
                 }
-            }
-        } catch (err) {
-            console.error('Check referral error:', err);
+            } catch(e) { console.error(e); }
         }
-    }
 
-    async function proceedToStep5() {
-        const res = await fetch(`${BASE_API}/api/challenge/step4`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: currentUserId })
-        });
-        const data = await res.json();
-        
-        if (data.success) {
-            currentStep = 5;
-            showStep5();
-            showToast('Referral verified! Final step.', 'success');
-            if (referralCheckInterval) clearInterval(referralCheckInterval);
-        } else {
-            showToast(data.error, 'error');
-            checkReferralStatus();
+        function copyKey(key) {
+            navigator.clipboard.writeText(key);
+            showToast('Key copied to clipboard!', 'success');
         }
-    }
 
-    // ============================================================
-    // STEP 5: Watch Ad & Claim Key
-    // ============================================================
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: ${type === 'success' ? 'rgba(0,255,136,0.9)' : 'rgba(255,51,85,0.9)'};
+                color: ${type === 'success' ? '#03030a' : 'white'};
+                padding: 12px 24px;
+                border-radius: 40px;
+                font-size: 14px;
+                font-weight: 600;
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
 
-    function showStep5() {
-        updateStepsDisplay();
-        document.getElementById('stepContent').innerHTML = `
-            <div class="duration-selector" id="durationSelector">
-                <div class="duration-option" onclick="selectDuration(3)">
-                    <div class="duration-hours">3</div>
-                    <div class="duration-label">Hours</div>
-                </div>
-                <div class="duration-option" onclick="selectDuration(6)">
-                    <div class="duration-hours">6</div>
-                    <div class="duration-label">Hours</div>
-                </div>
-                <div class="duration-option selected" onclick="selectDuration(12)">
-                    <div class="duration-hours">12</div>
-                    <div class="duration-label">Hours</div>
-                </div>
-            </div>
-            <div class="ad-timer" id="adTimer">
-                <div class="ad-icon"><i class="fas fa-video"></i></div>
-                <div class="ad-timer-number" id="timerDisplay">30s</div>
-                <div style="font-size: 12px; opacity: 0.7;">Watch 30-second ad to claim your key</div>
-            </div>
-            <button id="watchBtn" class="btn btn-primary" onclick="startAd()" style="width:100%;"><i class="fas fa-play"></i> Watch Ad</button>
-            <button id="claimBtn" class="btn btn-success" onclick="claimReward()" disabled style="width:100%; margin-top:12px;"><i class="fas fa-gift"></i> Claim Your Key</button>
-        `;
-        selectedDuration = 12;
-    }
-
-    function selectDuration(hours) {
-        selectedDuration = hours;
-        document.querySelectorAll('.duration-option').forEach(opt => opt.classList.remove('selected'));
-        event.target.classList.add('selected');
-    }
-
-    function startAd() {
-        let timeLeft = 30;
-        const timerDisplay = document.getElementById('timerDisplay');
-        const watchBtn = document.getElementById('watchBtn');
-        const claimBtn = document.getElementById('claimBtn');
-        
-        watchBtn.disabled = true;
-        watchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Watching...';
-        
-        if (timerInterval) clearInterval(timerInterval);
-        
-        timerInterval = setInterval(() => {
-            timeLeft--;
-            timerDisplay.innerHTML = `${timeLeft}s`;
+        async function startChallenge() {
+            const userId = document.getElementById('userId').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
             
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                timerDisplay.innerHTML = '✅ Done!';
-                watchBtn.innerHTML = '<i class="fas fa-check"></i> Ad Completed';
-                claimBtn.disabled = false;
-                claimBtn.style.opacity = '1';
-                showToast('Ad completed! You can now claim your key.', 'success');
+            if (!userId || !email || !phone) {
+                showToast('Please fill all fields', 'error');
+                return;
             }
-        }, 1000);
-    }
+            if (!email.includes('@')) {
+                showToast('Invalid email address', 'error');
+                return;
+            }
+            
+            currentUserId = userId;
+            localStorage.setItem('nexus_user', userId);
+            
+            showToast('Starting challenge...', 'info');
+            
+            try {
+                const res = await fetch(`${BASE_API}/api/challenge/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, email, phone })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    document.getElementById('userCard').style.display = 'none';
+                    document.getElementById('challengeCard').style.display = 'block';
+                    currentStep = 1;
+                    showStep1();
+                    showToast('Challenge started! Complete all 5 steps.', 'success');
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (err) {
+                showToast('Network error: ' + err.message, 'error');
+            }
+        }
 
-    async function claimReward() {
-        showToast('Generating your key...', 'info');
-        
-        const res = await fetch(`${BASE_API}/api/challenge/step5`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: currentUserId, durationHours: selectedDuration })
-        });
-        const data = await res.json();
-        
-        if (data.success) {
-            document.getElementById('challengeCard').innerHTML = `
-                <div class="card-title"><i class="fas fa-trophy"></i> Congratulations!</div>
-                <div class="key-result">
-                    <div class="key-value"><i class="fas fa-key"></i> ${data.key}</div>
-                    <div style="margin-top: 16px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-                        <span class="alert-success"><i class="fas fa-hourglass-half"></i> ${data.duration} Hours</span>
-                        <span class="alert-info"><i class="fas fa-calendar"></i> Expires: ${data.expiryFormatted}</span>
-                    </div>
-                    <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center;">
-                        <button class="btn btn-success" onclick="copyKey('${data.key}')"><i class="fas fa-copy"></i> Copy Key</button>
-                        <button class="btn btn-outline" onclick="location.reload()"><i class="fas fa-redo"></i> Get Another Key</button>
-                    </div>
+        function updateStepsDisplay() {
+            const stepsHtml = [1,2,3,4,5].map(step => `
+                <div class="step ${step < currentStep ? 'completed' : (step === currentStep ? 'active' : '')}">
+                    <div class="step-number">${step}</div>
+                    <div class="step-label">${step === 1 ? 'Email' : step === 2 ? 'Subscribe' : step === 3 ? 'Password' : step === 4 ? 'Share' : 'Claim'}</div>
+                </div>
+            `).join('');
+            document.getElementById('stepsDisplay').innerHTML = stepsHtml;
+        }
+
+        async function sendCode() {
+            const email = document.getElementById('email').value;
+            const res = await fetch(`${BASE_API}/api/challenge/send-code`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: currentUserId, email })
+            });
+            const data = await res.json();
+            if (data.code) {
+                document.getElementById('verifyCode').value = data.code;
+                showToast('Verification code sent!', 'success');
+            }
+        }
+
+        async function showStep1() {
+            updateStepsDisplay();
+            document.getElementById('stepContent').innerHTML = `
+                <div class="input-group">
+                    <label><i class="fas fa-envelope"></i> Verification Code</label>
+                    <input type="text" id="verifyCode" placeholder="Enter 6-digit code" maxlength="6">
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn btn-outline" onclick="sendCode()"><i class="fas fa-paper-plane"></i> Send Code</button>
+                    <button class="btn btn-success" onclick="verifyStep1()"><i class="fas fa-check"></i> Verify</button>
                 </div>
             `;
-            loadMyKey();
-            showToast('Key generated successfully!', 'success');
-        } else {
-            showToast(data.error, 'error');
+            await sendCode();
         }
-    }
 
-    // Initialize
-    loadMyKey();
-</script>
+        async function verifyStep1() {
+            const code = document.getElementById('verifyCode').value;
+            const res = await fetch(`${BASE_API}/api/challenge/step1`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: currentUserId, code })
+            });
+            const data = await res.json();
+            if (data.success) {
+                currentStep = 2;
+                showStep2();
+                showToast('Email verified!', 'success');
+            } else {
+                showToast(data.error, 'error');
+            }
+        }
+
+        // ============================================================
+        // STEP 2: VERIFIKASI TELEGRAM REAL
+        // ============================================================
+
+        function showStep2() {
+            updateStepsDisplay();
+            
+            document.getElementById('stepContent').innerHTML = `
+                <div class="ad-timer" style="background: linear-gradient(135deg, rgba(0,100,255,0.2), rgba(0,50,150,0.1));">
+                    <div class="ad-icon"><i class="fab fa-telegram"></i></div>
+                    <div style="font-size: 18px; font-weight: 700; margin: 10px 0; color: #0088cc;">Join Telegram Channel</div>
+                    <div style="font-size: 13px; margin-bottom: 20px; opacity: 0.8;">
+                        Klik tombol di bawah untuk join channel Telegram kami.<br>
+                        Setelah join, masukkan username Telegram Anda untuk verifikasi.
+                    </div>
+                    <a href="https://t.me/nexus_channel" target="_blank" class="btn btn-primary" style="display: inline-block; text-decoration: none; margin-bottom: 15px;">
+                        <i class="fab fa-telegram"></i> Join Telegram Channel
+                    </a>
+                    <div class="password-hint">
+                        <i class="fas fa-info-circle"></i> Pastikan Anda sudah join channel sebelum verifikasi.<br>
+                        Masukkan username Telegram Anda (tanpa @) untuk verifikasi.
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label><i class="fab fa-telegram"></i> Telegram Username</label>
+                    <input type="text" id="telegramUser" placeholder="username (tanpa @)">
+                </div>
+                <button class="btn btn-success" onclick="verifyStep2()" style="width:100%;">
+                    <i class="fas fa-check-circle"></i> Verify Subscription
+                </button>
+                <div id="telegramStatus" style="margin-top: 16px;"></div>
+            `;
+        }
+
+        async function verifyStep2() {
+            const telegramUsername = document.getElementById('telegramUser').value.trim();
+            const statusDiv = document.getElementById('telegramStatus');
+            
+            if (!telegramUsername) {
+                showToast('Please enter your Telegram username!', 'error');
+                return;
+            }
+            
+            const cleanUsername = telegramUsername.replace('@', '');
+            statusDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Verifying...</div>';
+            
+            try {
+                const res = await fetch(`${BASE_API}/api/challenge/step2`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentUserId, telegramUsername: cleanUsername })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    statusDiv.innerHTML = `<div class="alert alert-success"><i class="fas fa-check-circle"></i> ${data.message}</div>`;
+                    currentStep = 3;
+                    setTimeout(() => showStep3(), 1000);
+                    showToast('Telegram verified!', 'success');
+                } else {
+                    let errorMsg = data.error;
+                    if (data.channelLink) {
+                        errorMsg += ` <a href="${data.channelLink}" target="_blank" style="color:#00e5ff;">Join Channel</a>`;
+                    }
+                    statusDiv.innerHTML = `<div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> ${errorMsg}</div>`;
+                    showToast(data.error, 'error');
+                }
+            } catch (err) {
+                statusDiv.innerHTML = `<div class="alert alert-error">Network error: ${err.message}</div>`;
+                showToast('Network error: ' + err.message, 'error');
+            }
+        }
+
+        // ============================================================
+        // STEP 3: SAFELINKU PASSWORD
+        // ============================================================
+        
+        function showStep3() {
+            updateStepsDisplay();
+            
+            document.getElementById('stepContent').innerHTML = `
+                <div class="ad-timer" style="background: linear-gradient(135deg, rgba(255,100,0,0.2), rgba(255,50,0,0.1));">
+                    <div class="ad-icon"><i class="fas fa-lock"></i></div>
+                    <div style="font-size: 18px; font-weight: 700; margin: 10px 0; color: #ffaa33;">Get Password from Safelinku</div>
+                    <div style="font-size: 13px; margin-bottom: 20px; opacity: 0.8;">
+                        Klik tombol di bawah, selesaikan safelink, dan dapatkan PASSWORD untuk melanjutkan.
+                    </div>
+                    <a href="${SAFELINKU_URL}" target="_blank" class="btn btn-primary" style="display: inline-block; text-decoration: none; margin-bottom: 15px;">
+                        <i class="fas fa-external-link-alt"></i> Go to Safelinku
+                    </a>
+                    <div class="password-hint">
+                        <i class="fas fa-info-circle"></i> Setelah menyelesaikan safelink, Anda akan mendapatkan password.<br>
+                        Masukkan password di bawah untuk melanjutkan ke step berikutnya.
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-key"></i> Enter Password from Safelinku</label>
+                    <input type="text" id="safelinkPassword" placeholder="Enter password...">
+                </div>
+                <button class="btn btn-success" onclick="verifyStep3()" style="width:100%;">
+                    <i class="fas fa-check-circle"></i> Verify Password
+                </button>
+            `;
+        }
+
+        async function verifyStep3() {
+            const enteredPassword = document.getElementById('safelinkPassword').value.trim();
+            
+            if (!enteredPassword) {
+                showToast('Please enter the password from Safelinku!', 'error');
+                return;
+            }
+            
+            showToast('Verifying password...', 'info');
+            
+            if (enteredPassword === EXPECTED_PASSWORD) {
+                const res = await fetch(`${BASE_API}/api/challenge/step3`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentUserId, captchaAnswer: 19 })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    currentStep = 4;
+                    showStep4();
+                    showToast('Password verified! Proceed to step 4.', 'success');
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } else {
+                showToast('Wrong password! Please check the Safelinku again.', 'error');
+            }
+        }
+
+        // ============================================================
+        // STEP 4: REFERRAL SYSTEM
+        // ============================================================
+
+        function showStep4() {
+            updateStepsDisplay();
+            
+            const shareLink = `${window.location.origin}/ref/${currentUserId}`;
+            
+            document.getElementById('stepContent').innerHTML = `
+                <div class="ad-timer">
+                    <div class="ad-icon"><i class="fas fa-share-alt"></i></div>
+                    <div style="font-size: 18px; font-weight: 700; margin-bottom: 10px;">Share Link ke 3 Teman!</div>
+                    <div style="font-size: 13px; margin-bottom: 20px; opacity: 0.8;">
+                        Setiap teman yang klik link akan terhitung otomatis.<br>
+                        Dibutuhkan <strong>3 klik dari IP berbeda</strong> untuk melanjutkan.
+                    </div>
+                    <div class="key-value" style="font-size: 14px; word-break: break-all; margin-bottom: 15px;">
+                        ${shareLink}
+                    </div>
+                    <button class="btn btn-outline" onclick="copyReferralLink('${shareLink}')" style="margin-bottom: 15px;">
+                        <i class="fas fa-copy"></i> Copy Link
+                    </button>
+                    <div id="referralStatus" style="margin-top: 15px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 16px;">
+                        <div><i class="fas fa-spinner fa-spin"></i> Memeriksa status...</div>
+                    </div>
+                </div>
+                <button id="checkReferralBtn" class="btn btn-success" onclick="checkReferralStatus()" style="width:100%; margin-top: 16px;">
+                    <i class="fas fa-sync-alt"></i> Cek Status Referral
+                </button>
+            `;
+            
+            if (referralCheckInterval) clearInterval(referralCheckInterval);
+            referralCheckInterval = setInterval(checkReferralStatus, 5000);
+            setTimeout(checkReferralStatus, 500);
+        }
+
+        function copyReferralLink(link) {
+            navigator.clipboard.writeText(link);
+            showToast('Link copied! Share with your friends.', 'success');
+        }
+
+        async function checkReferralStatus() {
+            try {
+                const res = await fetch(`${BASE_API}/api/referral-status/${currentUserId}`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    const statusDiv = document.getElementById('referralStatus');
+                    const remaining = data.remaining;
+                    const current = data.referralCount;
+                    
+                    if (data.isCompleted) {
+                        statusDiv.innerHTML = `
+                            <div style="color: #00ff88;">
+                                <i class="fas fa-check-circle"></i> ✅ Referral completed! (${current}/3 clicks)
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <button class="btn btn-success" onclick="proceedToStep5()" style="width:100%;">
+                                    <i class="fas fa-arrow-right"></i> Lanjut ke Step 5
+                                </button>
+                            </div>
+                        `;
+                        if (referralCheckInterval) clearInterval(referralCheckInterval);
+                    } else {
+                        statusDiv.innerHTML = `
+                            <div><i class="fas fa-users"></i> Progress: ${current}/3 unique clicks</div>
+                            <div class="progress-bar" style="margin-top: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; height: 8px;">
+                                <div style="width: ${(current/3)*100}%; background: linear-gradient(90deg, #00e5ff, #00ff88); border-radius: 10px; height: 8px;"></div>
+                            </div>
+                            <div style="margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.5);">
+                                ${remaining > 0 ? `Butuh ${remaining} klik lagi dari IP berbeda` : 'Silakan klik "Cek Status"'}
+                            </div>
+                        `;
+                    }
+                }
+            } catch (err) {
+                console.error('Check referral error:', err);
+            }
+        }
+
+        async function proceedToStep5() {
+            const res = await fetch(`${BASE_API}/api/challenge/step4`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: currentUserId })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                currentStep = 5;
+                showStep5();
+                showToast('Referral verified! Final step.', 'success');
+                if (referralCheckInterval) clearInterval(referralCheckInterval);
+            } else {
+                showToast(data.error, 'error');
+                checkReferralStatus();
+            }
+        }
+
+        // ============================================================
+        // STEP 5: CLAIM KEY
+        // ============================================================
+
+        function showStep5() {
+            updateStepsDisplay();
+            document.getElementById('stepContent').innerHTML = `
+                <div class="duration-selector" id="durationSelector">
+                    <div class="duration-option" onclick="selectDuration(3)">
+                        <div class="duration-hours">3</div>
+                        <div class="duration-label">Hours</div>
+                    </div>
+                    <div class="duration-option" onclick="selectDuration(6)">
+                        <div class="duration-hours">6</div>
+                        <div class="duration-label">Hours</div>
+                    </div>
+                    <div class="duration-option selected" onclick="selectDuration(12)">
+                        <div class="duration-hours">12</div>
+                        <div class="duration-label">Hours</div>
+                    </div>
+                </div>
+                <div class="ad-timer" id="adTimer">
+                    <div class="ad-icon"><i class="fas fa-video"></i></div>
+                    <div class="ad-timer-number" id="timerDisplay">30s</div>
+                    <div style="font-size: 12px; opacity: 0.7;">Watch 30-second ad to claim your key</div>
+                </div>
+                <button id="watchBtn" class="btn btn-primary" onclick="startAd()" style="width:100%;"><i class="fas fa-play"></i> Watch Ad</button>
+                <button id="claimBtn" class="btn btn-success" onclick="claimReward()" disabled style="width:100%; margin-top:12px;"><i class="fas fa-gift"></i> Claim Your Key</button>
+            `;
+            selectedDuration = 12;
+        }
+
+        function selectDuration(hours) {
+            selectedDuration = hours;
+            document.querySelectorAll('.duration-option').forEach(opt => opt.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        function startAd() {
+            let timeLeft = 30;
+            const timerDisplay = document.getElementById('timerDisplay');
+            const watchBtn = document.getElementById('watchBtn');
+            const claimBtn = document.getElementById('claimBtn');
+            
+            watchBtn.disabled = true;
+            watchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Watching...';
+            
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.innerHTML = `${timeLeft}s`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timerDisplay.innerHTML = '✅ Done!';
+                    watchBtn.innerHTML = '<i class="fas fa-check"></i> Ad Completed';
+                    claimBtn.disabled = false;
+                    claimBtn.style.opacity = '1';
+                    showToast('Ad completed! You can now claim your key.', 'success');
+                }
+            }, 1000);
+        }
+
+        async function claimReward() {
+            showToast('Generating your key...', 'info');
+            
+            const res = await fetch(`${BASE_API}/api/challenge/step5`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: currentUserId, durationHours: selectedDuration })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                document.getElementById('challengeCard').innerHTML = `
+                    <div class="card-title"><i class="fas fa-trophy"></i> Congratulations!</div>
+                    <div class="key-result">
+                        <div class="key-value"><i class="fas fa-key"></i> ${data.key}</div>
+                        <div style="margin-top: 16px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                            <span class="alert-success"><i class="fas fa-hourglass-half"></i> ${data.duration} Hours</span>
+                            <span class="alert-info"><i class="fas fa-calendar"></i> Expires: ${data.expiryFormatted}</span>
+                        </div>
+                        <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center;">
+                            <button class="btn btn-success" onclick="copyKey('${data.key}')"><i class="fas fa-copy"></i> Copy Key</button>
+                            <button class="btn btn-outline" onclick="location.reload()"><i class="fas fa-redo"></i> Get Another Key</button>
+                        </div>
+                    </div>
+                `;
+                loadMyKey();
+                showToast('Key generated successfully!', 'success');
+            } else {
+                showToast(data.error, 'error');
+            }
+        }
+
+        loadMyKey();
+    </script>
 </body>
 </html>
-                                        
