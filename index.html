@@ -429,7 +429,7 @@
         function showStep4() {
             updateStepsDisplay();
             
-            const shareLink = `${window.location.origin}/ref/${currentUserId}`;
+            const shareLink = `${BASE_API}/ref/${currentUserId}`;
             
             document.getElementById('stepContent').innerHTML = `
                 <div class="ad-timer">
