@@ -183,7 +183,7 @@
         let token = null;
         let statusChart = null;
         let activityChart = null;
-        const BASE_API = "https://nexusofc-generate-key.vercel.app";
+        const BASE_API = "https://system-nexus-key.vercel.app";
 
         function showLoading(show) { const overlay = document.getElementById('loadingOverlay'); if (overlay) overlay.style.display = show ? 'flex' : 'none'; }
         function showToast(message, type) { const toast = document.createElement('div'); toast.className = 'toast'; toast.style.borderColor = type === 'success' ? '#00ff88' : '#ff3355'; toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`; document.body.appendChild(toast); setTimeout(() => toast.remove(), 3000); }
